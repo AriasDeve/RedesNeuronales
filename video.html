@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <style>
+    body{
+      background-color: cadetblue ;
+    }
+  </style>
+  <hr>
+  <p>CANVAS para dibujar e identificar</p>
+  <hr>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js" integrity="sha512-3RlxD1bW34eFKPwj9gUXEWtdSMC59QqIqHnD8O/NoTwSJhgxRizdcFVQhUMFyTp5RwLTDL0Lbcqtl8b7bFAzog==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+
+  <script>
+    let clasificador;
+    let video;
+    let etiqueta;
+    let confianza;
+
+    function preload(){
+      //Configurar la entrada video (CÁMARA)
+      video = createCapture(VIDEO, {
+        video: {
+          width: 280,
+          height: 280,
+          aspectRatio: 1
+        }
+      });
+      //El clasificador ML5 tomará la informacion del VIDEO
+      //Referencia RED NEURONAL > ORIGEN(INPUT)
+      clasificador = ml5.imageClassifier('DoodleNet', video);
+    }
+
+    function setup(){
+      //Capaz de resultado
+      etiqueta = createDiv(`Etiqueta:`);
+      confianza = createDiv(`Confianza:`);
+
+      //Invocar al clasificador/evaluar INPUT
+      clasificadorVideo();
+    }
+
+    function clasificadorVideo(){
+      //Solo utilizamos el CALLBACK FUNCTION ya qué el origen, están en el constructor
+      clasificador.classify(goResults);
+    }
+
+    function goResults(error, resultado){
+      if (error){
+        console.error(error);
+      }else{
+        etiqueta.html(`<strong>Etiqueta:</strong> ${resultado[0].label}`);
+        confianza.html(`<strong>Confianza:</strong> ${resultado[0].confidence}`);
+
+        //clasificadorVideo();
+        setTimeout(clasificadorVideo, 500);
+      }
+    }
+  </script>
+</body>
+</html>

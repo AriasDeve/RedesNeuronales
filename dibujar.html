@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dibujar</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+
+<body>
+  <style>
+    body {
+      background-color: cadetblue;
+    }
+  </style>
+  <hr>
+  <p>CANVAS para dibujar e identificar</p>
+  <hr>
+
+  <div class="progress">
+    <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0"
+      aria-valuemin="0" aria-valuemax="100"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"
+    integrity="sha512-3RlxD1bW34eFKPwj9gUXEWtdSMC59QqIqHnD8O/NoTwSJhgxRizdcFVQhUMFyTp5RwLTDL0Lbcqtl8b7bFAzog=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+
+  <script>
+    //Objetos
+    let clasificador;   //ML5
+    let canvas;         //lienzos
+    let etiqueta;       //capa/div
+    let confianza;      //capa/div
+
+    //Funciones
+    function preload() {
+      //DoodleNet = entrenado con QuickDraw de Google
+      clasificador = ml5.imageClassifier('DoodleNet');
+    }
+
+    function setup() {
+      //Crear un lienzo
+      canvas = createCanvas(280, 280);
+      //Color de fondo RGB(A) | un único valor es escala de grises
+      background(255)
+      //El usuario libere el clic(botón mouse) se ejecuta función
+      canvas.mouseReleased(clasificadorTrazos);
+
+      //Botón para limpiar CANVAS
+      let btnReset = createButton('Limpiar lienzo');
+      btnReset.position(0, 0);
+      btnReset.mousePressed(clearCanvas);
+
+      //Capaz para mostrar resultados
+      etiqueta = createDiv(`<strong>Etiqueta:</strong> `)
+      confianza = createDiv(`<strong>Confianza:</strong> `)
+    }
+
+    function clearCanvas() {
+      background(255);
+    }
+
+    //Dibujar -> configuraciones para CANVAS
+    function draw() {
+      //Ancho linea
+      strokeWeight(15);
+      //Color línea RGB()
+      stroke(0);
+      //Evento de Trazado
+      if (mouseIsPressed) {
+        //Linea
+        line(pmouseX, pmouseY, mouseX, mouseY);
+      }
+    }
+
+    function clasificadorTrazos() {
+      //Evaluamos el contenido del CANVAS
+      clasificador.classify(canvas, goResults);
+    }
+
+    //Callback function
+    function goResults(error, resultado) {
+      if (error) {
+        console.error(error);
+      } else {
+        console.log(resultado);
+        etiqueta.html(`<strong>Etiqueta:</strong> ${resultado[0].label}`);
+        confianza.html(`<strong>Confianza:</strong> ${resultado[0].confidence}`);
+
+        const confidenceValue = resultado[0].confidence * 100;
+        updateProgressBar(confidenceValue);
+      }
+    }
+
+    // Función para actualizar la barra de progreso con la confianza
+    function updateProgressBar(confidence) {
+      const progressBar = document.getElementById('progress-bar');
+      const width = confidence * 100; // Calcula el ancho de la barra en base a la confianza
+
+      progressBar.style.width = width + '%';
+      progressBar.setAttribute('aria-valuenow', width);
+      progressBar.innerHTML = width.toFixed(2) + '%';
+    }
+  </script>
+</body>
+
+</html>
